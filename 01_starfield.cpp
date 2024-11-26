@@ -90,9 +90,11 @@ int main(void) {
                     
                     Vector2 p1 = Vector2Scale(e1, pow(r, 2) / d0);
                     p1 = Vector2Add(p1, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
+                    p1 = Vector2Add(p1, {x, y});
 
                     Vector2 p2 = Vector2Scale(e1, pow(r, 2) / d0);
                     p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
+                    p2 = Vector2Add(p2, {x, y});
 
                     DrawTriangle(p0, p2, p1, WHITE);
                     }

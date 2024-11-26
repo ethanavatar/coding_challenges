@@ -9,6 +9,14 @@ const Vector2 CANVAS_SIZE         = { .x = 800, .y = 600 };
 const size_t STAR_COUNT   = 200;
 Vector3 stars[STAR_COUNT] = { 0 };
 
+float remap(
+    float x,
+    float in_min,  float in_max,
+    float out_min, float out_max
+) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 int main(void) {
     SetRandomSeed(time(NULL));
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
@@ -31,9 +39,10 @@ int main(void) {
     float window_scale  = (float) window_height / CANVAS_SIZE.y;
 
     for (size_t i = 0; i < STAR_COUNT; ++i) {
-        stars[i].x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
-        stars[i].y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);
-        stars[i].z = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
+        Vector3 *star = &stars[i];
+        star->x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
+        star->y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);
+        star->z = GetRandomValue(0, CANVAS_SIZE.x);
     }
 
     while (!WindowShouldClose()) {
@@ -47,8 +56,18 @@ int main(void) {
             BeginMode2D(world_camera);
                 for (size_t i = 0; i < STAR_COUNT; ++i) {
                     Vector3 *star = &stars[i];
-                    DrawCircle(star->x / star->z, star->y / star->z, 1.f, WHITE);
-                    star->z -= 1;
+
+                    float x = remap(star->x / star-> z, 0, 1, 0, CANVAS_SIZE.x);
+                    float y = remap(star->y / star-> z, 0, 1, 0, CANVAS_SIZE.y);
+                    float r = remap(star->z, 0, CANVAS_SIZE.x, 5, 0);
+
+                    DrawCircle(x, y, r, WHITE);
+                    star->z -= 5;
+                    if (star->z < 1) {
+                        star->x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
+                        star->y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);
+                        star->z = CANVAS_SIZE.x;
+                    }
                 }
             EndMode2D();
         EndTextureMode();

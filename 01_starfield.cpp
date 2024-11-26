@@ -3,6 +3,8 @@
 #include <cstring>
 #include <ctime>
 #include "raylib.h"
+#include "raymath.h"
+#include <cmath>
 
 #include "common/defer.hpp"
 #include "common/math.h"
@@ -76,51 +78,19 @@ int main(void) {
                     // Triangles must be drawn counter-clockwise
                     // https://github.com/raysan5/raylib/issues/941
                     
-                    if (x > 0 && y > 0) {
-                        DrawTriangle(
-                            // Left
-                            { x - r, y },
+                    Vector2 p0 = { last_x, last_y };
+                    float   d0 = sqrt(pow(p0.x, 2) + pow(p0.y, 2));
+                    Vector2 e1 = Vector2Scale(p0, 1.f / d0);
+                    Vector2 e2 = { -p0.y / d0, p0.x / d0 };
+                    
+                    Vector2 p1 = Vector2Scale(e1, pow(r, 2) / d0);
+                    p1 = Vector2Add(p1, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
 
-                            // Top
-                            { x, y - r },
-                            { last_x, last_y },
-                            WHITE
-                        );
-                    } else if (x < 0 && y > 0) {
-                        DrawTriangle(
-                            // Top
-                            { x, y - r },
+                    Vector2 p2 = Vector2Scale(e1, pow(r, 2) / d0);
+                    p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
 
-                            // Right
-                            { x + r, y },
-
-                            { last_x, last_y },
-                            WHITE
-                        );
-                    } else if (x > 0 && y < 0) {
-                        DrawTriangle(
-                            // Bottom
-                            { x, y + r },
-
-                            // Left
-                            { x - r, y },
-
-                            { last_x, last_y },
-                            WHITE
-                        );
-                    } else if (x < 0 && y < 0) {
-                        DrawTriangle(
-                            // Right
-                            { x + r, y },
-
-                            // Bottom
-                            { x, y + r },
-
-                            { last_x, last_y },
-                            WHITE
-                        );
-                    }
-                    DrawCircle(x, y, r, WHITE);
+                    DrawTriangle(p0, p2, p1, WHITE);
+                    //DrawCircle(x, y, r, WHITE);
 
                     if (is_paused) {
                         continue;

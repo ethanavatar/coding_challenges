@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/bin/01_starfield",
+            "program": "${workspaceFolder}/bin/coding_challenges.exe",
             "args": [],
             "cwd": "${workspaceFolder}"
         }

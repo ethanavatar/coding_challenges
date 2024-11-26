@@ -10,14 +10,14 @@
 #include "common/math.h"
 
 const Vector2 SCREEN_SIZE_INITIAL = { .x = 800, .y = 600 };
-const Vector2 CANVAS_SIZE         = { .x = 800, .y = 600 };
+const Vector2 CANVAS_SIZE         = { .x = 1200, .y = 1000 };
 
 struct Star {
     float x, y, z, last_z;
 };
 
 int main(void) {
-    const size_t STAR_COUNT = 10;
+    const size_t STAR_COUNT = 600;
     struct Star *stars      = (struct Star *) calloc(STAR_COUNT, sizeof(struct Star));
     memset(stars, 0, STAR_COUNT);
     DEFER(free(stars));
@@ -69,21 +69,13 @@ int main(void) {
 
                     float x = float_remap(star->x / star->z, 0, 1, 0, CANVAS_SIZE.x);
                     float y = float_remap(star->y / star->z, 0, 1, 0, CANVAS_SIZE.y);
-                    float r = float_remap(star->z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
+                    float r = float_remap(star->z, 0, CANVAS_SIZE.x / 2.f, 10, 0);
 
                     float last_x = float_remap(star->x / star->last_z, 0, 1, 0, CANVAS_SIZE.x);
                     float last_y = float_remap(star->y / star->last_z, 0, 1, 0, CANVAS_SIZE.y);
                     float last_r = float_remap(star->last_z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
 
-                    // Triangles must be drawn counter-clockwise
-                    // https://github.com/raysan5/raylib/issues/941
-                    
-
-                    if (r > 1) {
-
-                    Vector2 p0 = { last_x, last_y };
-                    p0 = Vector2Subtract(p0, {x, y});
-
+                    Vector2 p0 = Vector2Subtract({ last_x, last_y }, {x, y});
                     float   d0 = sqrt(pow(p0.x, 2) + pow(p0.y, 2));
                     Vector2 e1 = Vector2Scale(p0, 1.f / d0);
                     Vector2 e2 = { -p0.y / d0, p0.x / d0 };
@@ -96,16 +88,17 @@ int main(void) {
                     p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
                     p2 = Vector2Add(p2, {x, y});
 
-                    DrawTriangle(p0, p2, p1, WHITE);
-                    }
-                    //DrawCircle(x, y, r, WHITE);
+                    // Triangles must be drawn counter-clockwise
+                    // https://github.com/raysan5/raylib/issues/941
+                    DrawTriangle({ last_x, last_y }, p2, p1, WHITE);
+                    DrawCircle(x, y, r, WHITE);
 
                     if (is_paused) {
                         continue;
                     }
 
                     star->last_z = star->z;
-                    star->z -= 1;
+                    star->z -= 25;
                     if (star->z < 1) {
                         star->x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
                         star->y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);

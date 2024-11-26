@@ -71,6 +71,19 @@ int main(void) {
                     float y = float_remap(star->y / star->z, 0, 1, 0, CANVAS_SIZE.y);
                     float r = float_remap(star->z, 0, CANVAS_SIZE.x / 2.f, 10, 0);
 
+                    // https://math.stackexchange.com/questions/3749993/an-equation-for-a-graph-which-resembles-a-hump-of-a-camel-pulse-in-a-string
+                    // I cant really tell if this is actually working though, lol
+                    float distance_factor_x;
+                    float distance_factor_y;
+                    {
+                        float a = 3;
+                        float b = 1;
+                        float c = 0;
+                        float d = 1;
+                        distance_factor_x = a / (1 + b * pow(star->x - c, 2)) + d;
+                        distance_factor_y = a / (1 + b * pow(star->y - c, 2)) + d;
+                    }
+
                     float last_x = float_remap(star->x / star->last_z, 0, 1, 0, CANVAS_SIZE.x);
                     float last_y = float_remap(star->y / star->last_z, 0, 1, 0, CANVAS_SIZE.y);
                     float last_r = float_remap(star->last_z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
@@ -93,12 +106,11 @@ int main(void) {
                     DrawTriangle({ last_x, last_y }, p2, p1, WHITE);
                     DrawCircle(x, y, r, WHITE);
 
-                    if (is_paused) {
-                        continue;
-                    }
+                    if (is_paused) continue;
 
                     star->last_z = star->z;
-                    star->z -= 25;
+                    star->z -= 1500 * distance_factor_x * distance_factor_y * delta_time;
+
                     if (star->z < 1) {
                         star->x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
                         star->y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);

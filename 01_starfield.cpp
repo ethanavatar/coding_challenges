@@ -17,7 +17,7 @@ struct Star {
 };
 
 int main(void) {
-    const size_t STAR_COUNT = 800;
+    const size_t STAR_COUNT = 10;
     struct Star *stars      = (struct Star *) calloc(STAR_COUNT, sizeof(struct Star));
     memset(stars, 0, STAR_COUNT);
     DEFER(free(stars));
@@ -78,7 +78,12 @@ int main(void) {
                     // Triangles must be drawn counter-clockwise
                     // https://github.com/raysan5/raylib/issues/941
                     
+
+                    if (r > 1) {
+
                     Vector2 p0 = { last_x, last_y };
+                    p0 = Vector2Subtract(p0, {x, y});
+
                     float   d0 = sqrt(pow(p0.x, 2) + pow(p0.y, 2));
                     Vector2 e1 = Vector2Scale(p0, 1.f / d0);
                     Vector2 e2 = { -p0.y / d0, p0.x / d0 };
@@ -90,6 +95,7 @@ int main(void) {
                     p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
 
                     DrawTriangle(p0, p2, p1, WHITE);
+                    }
                     //DrawCircle(x, y, r, WHITE);
 
                     if (is_paused) {
@@ -97,7 +103,7 @@ int main(void) {
                     }
 
                     star->last_z = star->z;
-                    star->z -= 15;
+                    star->z -= 1;
                     if (star->z < 1) {
                         star->x = GetRandomValue(-CANVAS_SIZE.x / 2.f, CANVAS_SIZE.x / 2.f);
                         star->y = GetRandomValue(-CANVAS_SIZE.y / 2.f, CANVAS_SIZE.y / 2.f);

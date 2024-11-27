@@ -78,8 +78,8 @@ void starfield_update(void *scene_data, float delta_time) {
 
     if (IsKeyPressed(KEY_SPACE)) self->is_paused ^= true;
 
-    ClearBackground(BLACK);
     BeginMode2D(self->camera);
+        ClearBackground(BLACK);
         for (size_t i = 0; i < STAR_COUNT; ++i) {
             struct Star *star = &self->stars[i];
 

@@ -3,9 +3,10 @@
 #include <cstring>
 #include <ctime>
 #include <cassert>
+#include <cmath>
+
 #include "raylib.h"
 #include "raymath.h"
-#include <cmath>
 
 #include "common/defer.hpp"
 #include "common/math.h"

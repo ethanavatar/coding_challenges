@@ -1,6 +1,8 @@
-#include <cstdio>
 #include <ctime>
+#include <cstdio>
+
 #include "raylib.h"
+
 #include "common/defer.hpp"
 #include "common/scene_loading.h"
 

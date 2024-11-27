@@ -3,11 +3,9 @@
 
 #include "raylib.h"
 
+#include "common/common.h"
 #include "common/defer.hpp"
 #include "common/scene_loading.h"
-
-const Vector2 SCREEN_SIZE_INITIAL = { .x = 800,  .y = 600  };
-const Vector2 CANVAS_SIZE         = { .x = 1200, .y = 1000 };
 
 int main(void) {
     SetRandomSeed(time(NULL));

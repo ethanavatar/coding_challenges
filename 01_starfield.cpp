@@ -8,6 +8,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "common/common.h"
 #include "common/defer.hpp"
 #include "common/math.h"
 #include "common/scene.h"
@@ -16,18 +17,14 @@ void *starfield_init(void);
 void  starfield_update(void  *scene_data, float delta_time);
 void  starfield_destroy(void *scene_data);
 
-extern "C"
-struct Scene_Functions __declspec(dllexport) get_scene_functions(void) {
+extern "C" struct Scene_Functions __declspec(dllexport) get_scene_functions(void);
+struct Scene_Functions get_scene_functions(void) {
     return (struct Scene_Functions) {
         .init    = &starfield_init,
         .update  = &starfield_update,
         .destroy = &starfield_destroy,
     };
 }
-
-// @CleanUp: This should be kept at the app-level
-const Vector2 SCREEN_SIZE_INITIAL = { .x = 800,  .y = 600  };
-const Vector2 CANVAS_SIZE         = { .x = 1200, .y = 1000 };
 
 const size_t STAR_COUNT = 600;
 
@@ -97,18 +94,23 @@ void starfield_update(void *scene_data, float delta_time) {
         float last_y = float_remap(star->y / star->last_z, 0, 1, 0, CANVAS_SIZE.y);
         float last_r = float_remap(star->last_z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
 
-        Vector2 p0 = Vector2Subtract({ last_x, last_y }, {x, y});
-        float   d0 = sqrt(pow(p0.x, 2) + pow(p0.y, 2));
-        Vector2 e1 = Vector2Scale(p0, 1.f / d0);
-        Vector2 e2 = { -p0.y / d0, p0.x / d0 };
-        
-        Vector2 p1 = Vector2Scale(e1, pow(r, 2) / d0);
-        p1 = Vector2Add(p1, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
-        p1 = Vector2Add(p1, {x, y});
+        // https://en.wikipedia.org/wiki/Tangent_lines_to_circles#With_analytic_geometry
+        Vector2 p1;
+        Vector2 p2;
+        {
+            Vector2 p0 = Vector2Subtract({ last_x, last_y }, {x, y});
+            float   d0 = sqrt(pow(p0.x, 2) + pow(p0.y, 2));
+            Vector2 e1 = Vector2Scale(p0, 1.f / d0);
+            Vector2 e2 = { -p0.y / d0, p0.x / d0 };
+            
+            p1 = Vector2Scale(e1, pow(r, 2) / d0);
+            p1 = Vector2Add(p1, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
+            p1 = Vector2Add(p1, {x, y});
 
-        Vector2 p2 = Vector2Scale(e1, pow(r, 2) / d0);
-        p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
-        p2 = Vector2Add(p2, {x, y});
+            p2 = Vector2Scale(e1, pow(r, 2) / d0);
+            p2 = Vector2Subtract(p2, Vector2Scale(e2, (r / d0) * sqrt(pow(d0, 2) - pow(r, 2))));
+            p2 = Vector2Add(p2, {x, y});
+        }
 
         // Triangles must be drawn counter-clockwise
         // https://github.com/raysan5/raylib/issues/941

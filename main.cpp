@@ -16,10 +16,6 @@ int main(void) {
 
     SetTargetFPS(60);
 
-    Camera2D world_camera = { };
-    world_camera.zoom = 1;
-    world_camera.target = { .x = -CANVAS_SIZE.x / 2.f, .y = -CANVAS_SIZE.y / 2.f };
-
     RenderTexture2D render_target = LoadRenderTexture(CANVAS_SIZE.x, CANVAS_SIZE.y);
     DEFER(UnloadRenderTexture(render_target));
 
@@ -42,10 +38,7 @@ int main(void) {
         SetWindowTitle(title);
 
         BeginTextureMode(render_target);
-            ClearBackground(BLACK);
-            BeginMode2D(world_camera);
-                current_scene.update(scene_data, delta_time);
-            EndMode2D();
+            current_scene.update(scene_data, delta_time);
         EndTextureMode();
 
         if (IsWindowResized()) {

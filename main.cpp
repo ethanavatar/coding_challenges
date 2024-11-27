@@ -29,7 +29,8 @@ int main(void) {
     float window_scale  = (float) window_height / CANVAS_SIZE.y;
 
     struct Scene current_scene_info = { 0 };
-    current_scene_info = load_scene_from_dll("bin/01_starfield.dll", "bin/01_starfield_loaded.dll");
+    //current_scene_info = load_scene_from_dll("bin/01_starfield.dll", "bin/01_starfield_loaded.dll");
+    current_scene_info = load_scene_from_dll("bin/02_menger_sponge.dll", "bin/02_menger_sponge_loaded.dll");
     struct Scene_Functions current_scene = current_scene_info.functions;
 
     void *scene_data = current_scene.init();

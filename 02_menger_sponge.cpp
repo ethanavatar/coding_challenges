@@ -31,7 +31,7 @@ struct Cube_Array {
     struct Cube *cubes;
 };
 
-const size_t MAX_CUBES = 1024;
+const size_t MAX_CUBES = 1024 * 10;
 
 struct Scene_Data {
     Camera3D camera;
@@ -40,6 +40,11 @@ struct Scene_Data {
 };
 
 void cube_create(struct Cube_Array *array, Vector3 position, float width) {
+    if (array->count >= MAX_CUBES) {
+        fprintf(stderr, "array->count: %d\n", array->count);
+        fprintf(stderr, "MAX_CUBES:    %d\n", MAX_CUBES);
+        assert(false && "Out of bounds");
+    }
     struct Cube *c = &array->cubes[array->count++];
     c->position = position;
     c->size     = { width, width, width };
@@ -57,6 +62,7 @@ void cube_subdivide(struct Scene_Data *self, struct Cube cube) {
             for (int z = -1; z < 2; ++z) {
                 int sum = (int) (fabs(x) + fabs(y) + fabs(z));
                 if (sum <= 1) continue;
+                //if (sum > 1) continue;
 
                 float w = cube.size.x / 3.f;
                 Vector3 pos = {
@@ -78,10 +84,15 @@ void cubes_subdivide(struct Scene_Data *self) {
         cube_subdivide(self, cube);
     }
 
-    memcpy(self->active_cubes.cubes, self->next_cubes.cubes, self->next_cubes.count * sizeof(struct Cube));
+    memcpy(
+        self->active_cubes.cubes,
+        self->next_cubes.cubes,
+        self->next_cubes.count * sizeof(struct Cube)
+    );
+
     self->active_cubes.count = self->next_cubes.count;
-    fprintf(stderr, "next_cubes.count: %d\n", self->next_cubes.count);
-    fprintf(stderr, "active_cubes.count: %d\n", self->active_cubes.count);
+    //fprintf(stderr, "next_cubes.count: %d\n", self->next_cubes.count);
+    //fprintf(stderr, "active_cubes.count: %d\n", self->active_cubes.count);
 }
 
 void *init(void) {
@@ -100,11 +111,11 @@ void *init(void) {
 
     self->active_cubes.cubes = (struct Cube *) calloc(MAX_CUBES, sizeof(struct Cube));
     assert(self->active_cubes.cubes && "failed to allocate cubes");
-    memset(self->active_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
+    //memset(self->active_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
 
     self->next_cubes.cubes = (struct Cube *) calloc(MAX_CUBES, sizeof(struct Cube));
     assert(self->next_cubes.cubes && "failed to allocate cubes");
-    memset(self->next_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
+    //memset(self->next_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
 
     cube_create(&self->active_cubes, { 0, 0, 0 }, 5);
     return (void *) self;

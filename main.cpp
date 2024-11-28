@@ -26,7 +26,16 @@ int main(void) {
 
     struct Scene current_scene_info = { 0 };
     //current_scene_info = load_scene_from_dll("bin/01_starfield.dll", "bin/01_starfield_loaded.dll");
-    current_scene_info = load_scene_from_dll("bin/02_menger_sponge.dll", "bin/02_menger_sponge_loaded.dll");
+    
+    // @TODO: Main menu with scene selection
+    current_scene_info = load_scene_from_dll(
+        "bin/02_menger_sponge.dll",
+        "bin/02_menger_sponge_loaded.dll",
+
+        // @Broken: Debugging still doesnt work for loaded libraries
+        "bin/02_menger_sponge.pdb",
+        "bin/02_menger_sponge_loaded.pdb"
+    );
     struct Scene_Functions current_scene = current_scene_info.functions;
 
     void *scene_data = current_scene.init();

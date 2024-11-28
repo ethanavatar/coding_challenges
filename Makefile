@@ -1,6 +1,6 @@
 CC=clang
 CXX=clang++
-CXX_FLAGS=-Wall -Wextra -Wpedantic -Wconversion -std=c++20 -O0 -g -fsanitize=address,undefined,integer
+CXX_FLAGS=-Wall -Wextra -Wpedantic -Wconversion -std=c++20 -O0 -g -gcodeview -Wl,--pdb= -fsanitize=address,undefined,integer
 
 OUT_DIR=bin/$(CONFIG)
 

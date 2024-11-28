@@ -19,11 +19,17 @@ const struct Scene_Functions EMPTY_SCENE_FUNCTIONS = {
     .destroy = &empty_destroy,
 };
 
-struct Scene load_scene_from_dll(const char *dll_path, const char *temp_dll_path) {
+struct Scene load_scene_from_dll(
+    const char *dll_path,
+    const char *temp_dll_path,
+    const char *pdb_path,
+    const char *temp_pdb_path
+) {
     struct Scene scene = { 0 };
     scene.last_library_write_time = GetFileModTime(dll_path);
 
     CopyFileA((LPCSTR) dll_path, (LPCSTR) temp_dll_path, FALSE);
+    CopyFileA((LPCSTR) pdb_path, (LPCSTR) temp_pdb_path, FALSE);
 
     scene.library = LoadLibraryA(temp_dll_path);
     scene.is_valid = true;

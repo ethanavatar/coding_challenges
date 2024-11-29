@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 #include "raylib.h"
 
 #include "common/common.h"
@@ -8,6 +9,10 @@
 #include "common/scene.h"
 
 struct Vector2Int { int x, y; };
+
+float lerp(float a, float b, float t)         { return (1 - t) * a + b * t; }
+float inverse_lerp(float a, float b, float v) { return (v - a) / (b - a); }
+float remap(float a, float b, float a1, float b1, float v) { return lerp(a1, b1, inverse_lerp(a, b, v)); }
 
 void *init(void);
 void  update(void  *scene_data, float delta_time);
@@ -20,6 +25,8 @@ const Vector2Int BOARD_SIZE = {
 };
 
 const size_t SNAKE_MAX_LENGTH = BOARD_SIZE.x * BOARD_SIZE.y;
+
+const float DEATH_ANIMATION_LENGTH = 1.f;
 
 enum Event {
     E_TURN_UP,   E_TURN_DOWN,
@@ -49,11 +56,12 @@ struct Scene_Data {
     // @Hack
     bool move_queued;
 
-    // @TODO
-    bool is_dying;
+    bool  is_dying;
+    float death_animation_timer;
 
     struct Vector2Int food_position;
 
+    size_t snake_length_max;
     size_t snake_length;
     struct Snake_Link *snake_links;
     enum   Direction   snake_direction;
@@ -72,6 +80,7 @@ void snake_reset(struct Scene_Data *self) {
     // @Leak
     self->snake_links = (struct Snake_Link *) calloc(SNAKE_MAX_LENGTH, sizeof(struct Snake_Link));
     self->snake_length = 1;
+    self->snake_length_max = self->snake_length;
     self->snake_links[0].position = {
         .x = GetRandomValue(0, BOARD_SIZE.x - 1),
         .y = GetRandomValue(0, BOARD_SIZE.y - 1)
@@ -83,6 +92,7 @@ void snake_extend(struct Scene_Data *self) {
     struct Snake_Link *new_link = &self->snake_links[self->snake_length++];
 
     new_link->position = old_link->position_previous;
+    self->snake_length_max = self->snake_length;
 }
 
 void snake_draw(struct Scene_Data *self) {
@@ -180,9 +190,8 @@ void end_turn(struct Scene_Data *self) {
         if ((head.position.x == self->snake_links[i].position.x) &&
             (head.position.y == self->snake_links[i].position.y)) {
             
-            // @TODO: death animation
-            snake_reset(self);
-            break;
+            self->is_dying = true;
+            return;
         }
 
         previous_link = self->snake_links[i];
@@ -251,12 +260,34 @@ void update(void *scene_data, float delta_time) {
         };
     }
 
-    if (self->turn_timer >= 0.0625f) {
-        end_turn(self);
-        self->turn_timer = 0;
-    }
+    if (self->is_dying) {
 
-    self->turn_timer += delta_time;
+        size_t kill_link_count = floor(
+            remap(0.f, DEATH_ANIMATION_LENGTH, 0.f, (float) self->snake_length_max, self->death_animation_timer)
+        );
+        fprintf(stderr, "kill_link_count: %zu\n", kill_link_count);
+
+
+        if (self->death_animation_timer < DEATH_ANIMATION_LENGTH) {
+            self->snake_length = self->snake_length_max - kill_link_count;
+
+            self->death_animation_timer += delta_time;
+            fprintf(stderr, "death_animation_timer: %.2f\n", self->death_animation_timer);
+
+        } else {
+            self->is_dying = false;
+            self->death_animation_timer = 0;
+            snake_reset(self);
+        }
+
+    } else {
+        if (self->turn_timer >= 0.0625f) {
+            end_turn(self);
+            self->turn_timer = 0;
+        }
+
+        self->turn_timer += delta_time;
+    }
 }
 
 void destroy(void *scene_data) {

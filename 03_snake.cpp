@@ -7,19 +7,14 @@
 #include "common/common.h"
 #include "common/defer.hpp"
 #include "common/scene.h"
-
-struct Vector2Int { int x, y; };
-
-float lerp(float a, float b, float t)         { return (1 - t) * a + b * t; }
-float inverse_lerp(float a, float b, float v) { return (v - a) / (b - a); }
-float remap(float a, float b, float a1, float b1, float v) { return lerp(a1, b1, inverse_lerp(a, b, v)); }
+#include "common/math.h"
 
 void *init(void);
 void  update(void  *scene_data, float delta_time);
 void  destroy(void *scene_data);
 
-const Vector2Int CELL_SIZE  = { .x = 20, .y = 20 };
-const Vector2Int BOARD_SIZE = { 
+const Vector2_Int CELL_SIZE  = { .x = 20, .y = 20 };
+const Vector2_Int BOARD_SIZE = { 
     .x = (int) CANVAS_SIZE.x / CELL_SIZE.x,
     .y = (int) CANVAS_SIZE.y / CELL_SIZE.y
 };
@@ -41,8 +36,8 @@ enum Direction {
 };
 
 struct Snake_Link {
-    struct Vector2Int position;
-    struct Vector2Int position_previous;
+    struct Vector2_Int position;
+    struct Vector2_Int position_previous;
 };
 
 struct Scene_Data {
@@ -59,7 +54,7 @@ struct Scene_Data {
     bool  is_dying;
     float death_animation_timer;
 
-    struct Vector2Int food_position;
+    struct Vector2_Int food_position;
 
     size_t snake_length_max;
     size_t snake_length;

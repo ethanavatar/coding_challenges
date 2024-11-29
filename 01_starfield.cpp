@@ -83,9 +83,9 @@ void starfield_update(void *scene_data, float delta_time) {
         for (size_t i = 0; i < STAR_COUNT; ++i) {
             struct Star *star = &self->stars[i];
 
-            float x = float_remap(star->x / star->z, 0, 1, 0, CANVAS_SIZE.x);
-            float y = float_remap(star->y / star->z, 0, 1, 0, CANVAS_SIZE.y);
-            float r = float_remap(star->z, 0, CANVAS_SIZE.x / 2.f, 10, 0);
+            float x = remap(star->x / star->z, 0, 1, 0, CANVAS_SIZE.x);
+            float y = remap(star->y / star->z, 0, 1, 0, CANVAS_SIZE.y);
+            float r = remap(star->z, 0, CANVAS_SIZE.x / 2.f, 10, 0);
 
             // https://math.stackexchange.com/questions/3749993/an-equation-for-a-graph-which-resembles-a-hump-of-a-camel-pulse-in-a-string
             // I cant really tell if this is actually working though, lol
@@ -100,9 +100,9 @@ void starfield_update(void *scene_data, float delta_time) {
                 distance_factor_y = a / (1 + b * pow(star->y - c, 2)) + d;
             }
 
-            float last_x = float_remap(star->x / star->last_z, 0, 1, 0, CANVAS_SIZE.x);
-            float last_y = float_remap(star->y / star->last_z, 0, 1, 0, CANVAS_SIZE.y);
-            float last_r = float_remap(star->last_z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
+            float last_x = remap(star->x / star->last_z, 0, 1, 0, CANVAS_SIZE.x);
+            float last_y = remap(star->y / star->last_z, 0, 1, 0, CANVAS_SIZE.y);
+            float last_r = remap(star->last_z, 0, CANVAS_SIZE.x / 2.f, 5, 0);
 
             // https://en.wikipedia.org/wiki/Tangent_lines_to_circles#With_analytic_geometry
             Vector2 p1;

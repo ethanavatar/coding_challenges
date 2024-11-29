@@ -43,10 +43,16 @@ struct Scene_Data {
 
     float turn_timer;
 
-    size_t     events_count;
+    size_t      events_count;
     enum Event *events;
 
+    // @Hack
     bool move_queued;
+
+    // @TODO
+    bool is_dying;
+
+    struct Vector2Int food_position;
 
     size_t snake_length;
     struct Snake_Link *snake_links;
@@ -67,8 +73,8 @@ void snake_reset(struct Scene_Data *self) {
     self->snake_links = (struct Snake_Link *) calloc(SNAKE_MAX_LENGTH, sizeof(struct Snake_Link));
     self->snake_length = 1;
     self->snake_links[0].position = {
-        .x = GetRandomValue(0, BOARD_SIZE.x),
-        .y = GetRandomValue(0, BOARD_SIZE.y)
+        .x = GetRandomValue(0, BOARD_SIZE.x - 1),
+        .y = GetRandomValue(0, BOARD_SIZE.y - 1)
     };
 }
 
@@ -77,14 +83,6 @@ void snake_extend(struct Scene_Data *self) {
     struct Snake_Link *new_link = &self->snake_links[self->snake_length++];
 
     new_link->position = old_link->position_previous;
-    //new_link->position_previous = new_link->position;
-
-    /*
-    fprintf(stderr, "old position: %d, %d\n", old_link->position.x,          old_link->position.y);
-    fprintf(stderr, "old previous: %d, %d\n", old_link->position_previous.x, old_link->position_previous.y);
-    fprintf(stderr, "new position: %d, %d\n", new_link->position.x,          new_link->position.y);
-    fprintf(stderr, "new previous: %d, %d\n", new_link->position_previous.x, new_link->position_previous.y);
-    */
 }
 
 void snake_draw(struct Scene_Data *self) {
@@ -101,6 +99,7 @@ void snake_draw(struct Scene_Data *self) {
 
 void enqueue_event(struct Scene_Data *self, enum Event event) {
 
+    /*
     const char *event_name;
     static_assert(E_EVENTS_COUNT == 5, "Events enum changed");
     switch (event) {
@@ -110,6 +109,8 @@ void enqueue_event(struct Scene_Data *self, enum Event event) {
     case E_TURN_RIGHT: { event_name = "TURN_RIGHT"; } break;
     case E_EXTEND:     { event_name = "EXTEND";     } break;
     }
+    fprintf(stderr, "Enqueue: %s (%d)\n", event_name, event);
+    */
 
     if (self->move_queued) return;
 
@@ -122,7 +123,6 @@ void enqueue_event(struct Scene_Data *self, enum Event event) {
     case E_TURN_RIGHT: self->move_queued = true;
     }
 
-    fprintf(stderr, "Enqueue: %s (%d)\n", event_name, event);
 }
 
 void end_turn(struct Scene_Data *self) {
@@ -141,10 +141,6 @@ void end_turn(struct Scene_Data *self) {
     if (self->snake_links[0].position.y < 0) self->snake_links[0].position.y = BOARD_SIZE.y - 1;
     if (self->snake_links[0].position.x == BOARD_SIZE.x) self->snake_links[0].position.x = 0;
     if (self->snake_links[0].position.y == BOARD_SIZE.y) self->snake_links[0].position.y = 0;
-
-
-    //fprintf(stderr, "position: %d, %d\n", self->snake_links[0].position.x, self->snake_links[0].position.y);
-    //fprintf(stderr, "previous: %d, %d\n", self->snake_links[0].position_previous.x, self->snake_links[0].position_previous.y);
 
     for (size_t i = 0; i < self->events_count; ++i) {
         switch (self->events[i]) {
@@ -175,13 +171,22 @@ void end_turn(struct Scene_Data *self) {
     self->events_count = 0;
     self->move_queued = false;
 
-    struct Snake_Link previous_link = self->snake_links[0];
+    struct Snake_Link head = self->snake_links[0];
+    struct Snake_Link previous_link = head;
     for (size_t i = 1; i < self->snake_length; ++i) {
         self->snake_links[i].position_previous = self->snake_links[i].position;
         self->snake_links[i].position = previous_link.position_previous;
+        
+        if ((head.position.x == self->snake_links[i].position.x) &&
+            (head.position.y == self->snake_links[i].position.y)) {
+            
+            // @TODO: death animation
+            snake_reset(self);
+            break;
+        }
+
         previous_link = self->snake_links[i];
     }
-    
 }
 
 void *init(void) {
@@ -191,7 +196,6 @@ void *init(void) {
     {
         self->camera = { };
         self->camera.zoom = 1;
-        //self->camera.target = { .x = -CANVAS_SIZE.x / 2.f, .y = -CANVAS_SIZE.y / 2.f };
     }
 
     // @CleanUp: MAX_EVENTS
@@ -200,24 +204,52 @@ void *init(void) {
 
     snake_reset(self);
 
+    // @CleanUp: food_reset
+    // @Specificity: It shouldnt be possible to spawn food on a cell that there is currently a snake link
+    self->food_position = {
+        .x = GetRandomValue(0, BOARD_SIZE.x - 1),
+        .y = GetRandomValue(0, BOARD_SIZE.y - 1)
+    };
+
     return (void *) self;
 }
 
 void update(void *scene_data, float delta_time) {
     struct Scene_Data *self = (struct Scene_Data *) scene_data;
 
-    if (IsKeyPressed(KEY_R))     snake_reset(self);
     if (IsKeyPressed(KEY_E))     enqueue_event(self, E_EXTEND);
+
     if (IsKeyPressed(KEY_UP))    enqueue_event(self, E_TURN_UP);
     if (IsKeyPressed(KEY_DOWN))  enqueue_event(self, E_TURN_DOWN);
     if (IsKeyPressed(KEY_LEFT))  enqueue_event(self, E_TURN_LEFT);
     if (IsKeyPressed(KEY_RIGHT)) enqueue_event(self, E_TURN_RIGHT);
-    //if (IsKeyPressed(KEY_SPACE)) end_turn(self);
 
     BeginMode2D(self->camera);
         ClearBackground(BLACK);
         snake_draw(self);
+
+        DrawRectangle(
+            self->food_position.x * CELL_SIZE.x,
+            self->food_position.y * CELL_SIZE.y,
+            CELL_SIZE.x,
+            CELL_SIZE.y,
+            RED
+        );
     EndMode2D();
+
+    // @CleanUp: vector2_equal
+    if ((self->snake_links[0].position.x == self->food_position.x) &&
+        (self->snake_links[0].position.y == self->food_position.y)) {
+
+        enqueue_event(self, E_EXTEND);
+
+        // @CleanUp: food_reset
+        // @Specificity: It shouldnt be possible to spawn food on a cell that there is currently a snake link
+        self->food_position = {
+            .x = GetRandomValue(0, BOARD_SIZE.x - 1),
+            .y = GetRandomValue(0, BOARD_SIZE.y - 1)
+        };
+    }
 
     if (self->turn_timer >= 0.0625f) {
         end_turn(self);

@@ -24,10 +24,20 @@ int main(void) {
     float window_height = GetRenderHeight() / dpi_scale.y;
     float window_scale  = (float) window_height / CANVAS_SIZE.y;
 
-    struct Scene current_scene_info = { 0 };
-    //current_scene_info = load_scene_from_dll("bin/01_starfield.dll", "bin/01_starfield_loaded.dll");
-    
     // @TODO: Main menu with scene selection
+    struct Scene current_scene_info = { 0 };
+    /*
+    current_scene_info = load_scene_from_dll(
+        "bin/01_starfield.dll",
+        "bin/01_starfield_loaded.dll",
+
+        // @Broken: Debugging still doesnt work for loaded libraries
+        "bin/01_starfield.pdb",
+        "bin/01_starfield_loaded.pdb"
+    );
+    */
+    
+    /*
     current_scene_info = load_scene_from_dll(
         "bin/02_menger_sponge.dll",
         "bin/02_menger_sponge_loaded.dll",
@@ -36,6 +46,18 @@ int main(void) {
         "bin/02_menger_sponge.pdb",
         "bin/02_menger_sponge_loaded.pdb"
     );
+    */
+
+    current_scene_info = load_scene_from_dll(
+        "bin/03_snake.dll",
+        "bin/03_snake_loaded.dll",
+
+        // @Broken: Debugging still doesnt work for loaded libraries
+        "bin/03_snake.pdb",
+        "bin/03_snake_loaded.pdb"
+    );
+
+
     struct Scene_Functions current_scene = current_scene_info.functions;
 
     void *scene_data = current_scene.init();

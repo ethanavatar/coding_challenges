@@ -1,6 +1,7 @@
 CC=clang
 CXX=clang++
 CXX_FLAGS=-Wall -Wextra -Wpedantic -Wconversion -std=c++20 -O0 -g -gcodeview -Wl,--pdb= -fsanitize=address,undefined,integer
+DLL_FLAGS=-shared -m64 -fPIC
 
 OUT_DIR=bin/$(CONFIG)
 
@@ -10,14 +11,18 @@ INCLUDE_RAYLIB=-Iraylib/src -Lraylib/src -lraylib -lwinmm -lgdi32 -lm
 all: $(OUT_DIR)/coding_challenges.exe
 
 $(OUT_DIR)/01_starfield.dll: raylib |$(OUT_DIR)
-	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/01_starfield.dll 01_starfield.cpp -shared -m64 -fPIC
+	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/01_starfield.dll 01_starfield.cpp $(DLL_FLAGS)
 
 $(OUT_DIR)/02_menger_sponge.dll: raylib |$(OUT_DIR)
-	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/02_menger_sponge.dll 02_menger_sponge.cpp -shared -m64 -fPIC
+	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/02_menger_sponge.dll 02_menger_sponge.cpp $(DLL_FLAGS)
+
+$(OUT_DIR)/03_snake.dll: raylib |$(OUT_DIR)
+	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/03_snake.dll 03_snake.cpp $(DLL_FLAGS)
 
 $(OUT_DIR)/coding_challenges.exe:   \
 	$(OUT_DIR)/01_starfield.dll     \
-	$(OUT_DIR)/02_menger_sponge.dll
+	$(OUT_DIR)/02_menger_sponge.dll \
+	$(OUT_DIR)/03_snake.dll
 	$(CXX) $(CXX_FLAGS) -I. $(INCLUDE_RAYLIB) -o $(OUT_DIR)/coding_challenges.exe main.cpp -m64
 
 .PHONY: run

@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -54,15 +55,12 @@ void cubes_clear(struct Cube_Array *array) {
     array->count = 0;
 }
 
-#include <cmath>
-
 void cube_subdivide(struct Scene_Data *self, struct Cube cube) {
     for (int x = -1; x < 2; ++x) {
         for (int y = -1; y < 2; ++y) {
             for (int z = -1; z < 2; ++z) {
                 int sum = (int) (fabs(x) + fabs(y) + fabs(z));
                 if (sum <= 1) continue;
-                //if (sum > 1) continue;
 
                 float w = cube.size.x / 3.f;
                 Vector3 pos = {
@@ -70,8 +68,8 @@ void cube_subdivide(struct Scene_Data *self, struct Cube cube) {
                     cube.position.y + (y * w),
                     cube.position.z + (z * w)
                 };
+
                 cube_create(&self->next_cubes, pos, w);
-                //fprintf(stderr, "%d: { %.2f, %.2f, %.2f, %.2f }\n", self->next_cubes.count, pos.x, pos.y, pos.z, w);
             }
         }
     }
@@ -91,8 +89,6 @@ void cubes_subdivide(struct Scene_Data *self) {
     );
 
     self->active_cubes.count = self->next_cubes.count;
-    //fprintf(stderr, "next_cubes.count: %d\n", self->next_cubes.count);
-    //fprintf(stderr, "active_cubes.count: %d\n", self->active_cubes.count);
 }
 
 void *init(void) {
@@ -111,11 +107,9 @@ void *init(void) {
 
     self->active_cubes.cubes = (struct Cube *) calloc(MAX_CUBES, sizeof(struct Cube));
     assert(self->active_cubes.cubes && "failed to allocate cubes");
-    //memset(self->active_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
 
     self->next_cubes.cubes = (struct Cube *) calloc(MAX_CUBES, sizeof(struct Cube));
     assert(self->next_cubes.cubes && "failed to allocate cubes");
-    //memset(self->next_cubes.cubes, 0, MAX_CUBES * sizeof(struct Cube));
 
     cube_create(&self->active_cubes, { 0, 0, 0 }, 5);
     return (void *) self;

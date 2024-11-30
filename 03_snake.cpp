@@ -21,7 +21,7 @@ const Vector2_Int BOARD_SIZE = {
 
 const size_t SNAKE_MAX_LENGTH = BOARD_SIZE.x * BOARD_SIZE.y;
 
-const float DEATH_ANIMATION_LENGTH = 1.f;
+const float DEATH_ANIMATION_LENGTH = 2.f;
 
 enum Event {
     E_TURN_UP,   E_TURN_DOWN,
@@ -56,6 +56,8 @@ struct Scene_Data {
 
     struct Vector2_Int food_position;
 
+    // @TODO: Save data between runs
+    size_t session_max_length;
     size_t snake_length_max;
     size_t snake_length;
     struct Snake_Link *snake_links;
@@ -74,6 +76,7 @@ struct Scene_Functions get_scene_functions(void) {
 void snake_reset(struct Scene_Data *self) {
     // @Leak
     self->snake_links = (struct Snake_Link *) calloc(SNAKE_MAX_LENGTH, sizeof(struct Snake_Link));
+    self->snake_direction = (enum Direction) GetRandomValue(0, 3);
     self->snake_length = 1;
     self->snake_length_max = self->snake_length;
     self->snake_links[0].position = {
@@ -88,6 +91,10 @@ void snake_extend(struct Scene_Data *self) {
 
     new_link->position = old_link->position_previous;
     self->snake_length_max = self->snake_length;
+
+    if (self->snake_length_max > self->session_max_length) {
+        self->session_max_length = self->snake_length_max;
+    }
 }
 
 void snake_draw(struct Scene_Data *self) {
@@ -199,7 +206,8 @@ void *init(void) {
 
     {
         self->camera = { };
-        self->camera.zoom = 1;
+        self->camera.target = { .x = -(float) CELL_SIZE.x * 2, .y = -(float) CELL_SIZE.y * 2 };
+        self->camera.zoom = 0.9;
     }
 
     // @CleanUp: MAX_EVENTS
@@ -229,7 +237,16 @@ void update(void *scene_data, float delta_time) {
     if (IsKeyPressed(KEY_RIGHT)) enqueue_event(self, E_TURN_RIGHT);
 
     BeginMode2D(self->camera);
-        ClearBackground(BLACK);
+        ClearBackground(DARKGRAY);
+        DrawRectangle(0, 0, BOARD_SIZE.x * CELL_SIZE.x, BOARD_SIZE.y * CELL_SIZE.y, BLACK);
+
+        // @TODO: Seperate UI camera
+        const char *score_text = TextFormat("Score: %zu", self->snake_length);
+        DrawText(score_text, -30, -30, 25, WHITE);
+
+        const char *high_score_text = TextFormat("High Score: %zu", self->session_max_length);
+        DrawText(high_score_text, 100, -30, 25, WHITE);
+
         snake_draw(self);
 
         DrawRectangle(
